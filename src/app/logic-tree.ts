@@ -1,34 +1,34 @@
-type DecisionAction = {
+export type DecisionAction = {
     readonly label: string
     readonly actionId: string
 }
 
-type DecisionStep = {
+export type DecisionStep = {
     readonly actions: DecisionAction[]
     readonly verbiage: string
     readonly children: DecisionStep[]
     readonly decisionId: string
 }
 
-type NewDecisionStepEvent = {
+export type NewDecisionStepEvent = {
     readonly newStep: DecisionStep
     readonly onActionSelected: (actionId: string) => void
     readonly onGoBack: (() => void)
 }
 
-class LogicTreeEngine {
+export class LogicTreeEngine {
     private currStep: DecisionStep
     private prevSteps: DecisionStep[]
 
     constructor(readonly listener: (newStep: NewDecisionStepEvent) => void) {
     }
 
-    run(rootDecision: DecisionStep,) {
+    run(rootDecision: DecisionStep) {
         this.currStep = rootDecision
         this.prevSteps = []
         this.listener({
             newStep: this.currStep,
-            onActionSelected: this.nextAction,
+            onActionSelected: (actionId: string) => this.nextAction(actionId),
             onGoBack: null
         })
     }
@@ -39,8 +39,8 @@ class LogicTreeEngine {
         this.currStep = nextStep
         this.listener({
             newStep: this.currStep,
-            onActionSelected: this.nextAction,
-            onGoBack: this.goBack
+            onActionSelected: (actionId: string) => this.nextAction(actionId),
+            onGoBack: () => this.goBack()
         })
     }
 
@@ -49,8 +49,8 @@ class LogicTreeEngine {
         this.currStep = this.prevSteps.pop()
         this.listener({
             newStep: this.currStep,
-            onActionSelected: this.nextAction,
-            onGoBack: this.prevSteps.length > 0? this.goBack : null
+            onActionSelected: (actionId: string) => this.nextAction(actionId),
+            onGoBack: this.prevSteps.length > 0? () => this.goBack() : null
         })
     }
 }
